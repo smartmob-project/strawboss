@@ -2,3 +2,12 @@
 *.egg-info/
 */__pycache__/
 .tox/
+.cache/
+.coverage
+build/
+dist/
+htmlcov/
+.env
+Procfile
+foo.py
+bar.py

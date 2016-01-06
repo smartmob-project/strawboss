@@ -32,6 +32,11 @@ setup(
         'Topic :: Software Development :: Libraries',
     ],
     packages=find_packages(),
+    package_data={
+        'strawboss': [
+            'version.txt',
+        ],
+    },
     entry_points={
         'console_scripts': [
             'strawboss = strawboss:main',
