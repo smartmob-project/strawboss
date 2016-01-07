@@ -36,8 +36,7 @@ def now(utc=False):
 
 version = pkg_resources.resource_string('strawboss', 'version.txt')
 """Package version (as a dotted string)."""
-if hasattr(version, 'decode'):
-    version = version.decode('utf-8').strip()
+version = version.decode('utf-8').strip()
 
 
 class ListOverride(argparse.Action):

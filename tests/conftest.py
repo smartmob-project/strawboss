@@ -85,6 +85,11 @@ class MockSubprocess(object):
         self._future = asyncio.Future()
         self._killed = False
 
+    @property
+    def env(self):
+        """Retrieve the environment variables passed to the process."""
+        return {k: v for k, v in self._kwds['env'].items()}
+
     def wait(self):
         """Wait until the process completes."""
         return self._future
