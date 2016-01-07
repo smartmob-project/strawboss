@@ -29,7 +29,7 @@ Description
 
 This project is a command-line interface and a collections of utilities for
 locally running all programs in a distributed system using a ``Procfile``.  See
-`Smartmob RFC 1 -- Procfile
+`Smartmob RFC 1 - Procfile
 <http://smartmob-rfc.readthedocs.org/en/latest/1-procfile.html>`_.
 
 Documentation
