@@ -181,3 +181,91 @@ def test_main_envfile(load_procfile, load_dotenvfile,
     print(lines)
     assert len(subprocess_factory.instances) > 0
     assert set(lines) == set(expected_lines)
+
+@mock.patch('dotenvfile.loadfile')
+@mock.patch('procfile.loadfile')
+def test_main_envfile_missing(load_procfile, load_dotenvfile,
+                      subprocess_factory, capfd, event_loop):
+    load_procfile.return_value = {
+        'foo': {
+            'cmd': 'false',
+            'env': {
+                'ENV1': 'bar',
+            },
+        },
+    }
+    load_dotenvfile.side_effect = FileNotFoundError
+    # Automatically trigger CTRL-C a short while from now.
+    event_loop.call_later(1.0, os.kill, os.getpid(), signal.SIGINT)
+    # Run the main function!
+    main([])
+    stdout, stderr = capfd.readouterr()
+    # Error log should be empty.
+    assert stderr.strip() == 'Warning: environment file ".env" not found.'
+    # Output log should contain start & stop info for each subprocess.
+    #
+    # NOTE: we strip timestamps and PIDs from the logs since they don't matter
+    #       here and it makes comparisons simpler.
+    lines = [line.split(' ', 1)[1] for line in stdout.strip().split('\n')]
+    expected_lines = []
+    for p in subprocess_factory.instances:
+        env = {k: p.env[k] for k in ('ENV1',)}
+        assert env == {
+            'ENV1': 'bar',
+        }
+        expected_lines.extend([
+            '[strawboss] foo.0(%d) spawned.' % p.pid,
+            '[strawboss] foo.0(%d) killed.' % p.pid,
+            '[strawboss] foo.0(%d) completed with exit status -9.' % p.pid,
+        ])
+    print(lines)
+    assert len(subprocess_factory.instances) > 0
+    assert set(lines) == set(expected_lines)
+
+@mock.patch('dotenvfile.loadfile')
+@mock.patch('procfile.loadfile')
+def test_main_envfile_missing_partial(load_procfile, load_dotenvfile,
+                                      subprocess_factory, capfd, event_loop):
+    load_procfile.return_value = {
+        'foo': {
+            'cmd': 'false',
+            'env': {
+                'ENV1': 'bar',
+            },
+        },
+    }
+    load_dotenvfile.side_effect = [
+        {'ENV2': 'meh'},
+        FileNotFoundError,
+        {'ENV3': 'qux'},
+    ]
+    # Automatically trigger CTRL-C a short while from now.
+    event_loop.call_later(1.0, os.kill, os.getpid(), signal.SIGINT)
+    # Run the main function!
+    main([
+        '--envfile', '.env.common',
+        '--envfile', '.env.prod',
+        '--envfile', '.env.local',
+    ])
+    stdout, stderr = capfd.readouterr()
+    # Error log should be empty.
+    assert stderr.strip() == 'Warning: environment file ".env.prod" not found.'
+    # Output log should contain start & stop info for each subprocess.
+    #
+    # NOTE: we strip timestamps and PIDs from the logs since they don't matter
+    #       here and it makes comparisons simpler.
+    lines = [line.split(' ', 1)[1] for line in stdout.strip().split('\n')]
+    expected_lines = []
+    for p in subprocess_factory.instances:
+        env = {k: p.env[k] for k in ('ENV1',)}
+        assert env == {
+            'ENV1': 'bar',
+        }
+        expected_lines.extend([
+            '[strawboss] foo.0(%d) spawned.' % p.pid,
+            '[strawboss] foo.0(%d) killed.' % p.pid,
+            '[strawboss] foo.0(%d) completed with exit status -9.' % p.pid,
+        ])
+    print(lines)
+    assert len(subprocess_factory.instances) > 0
+    assert set(lines) == set(expected_lines)

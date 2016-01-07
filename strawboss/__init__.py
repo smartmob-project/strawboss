@@ -238,12 +238,12 @@ def main(arguments=None):
     env = {}
     if arguments.use_env:
         for path in arguments.envfiles:
-            if not os.access(path, os.R_OK):
+            try:
+                env.update(dotenvfile.loadfile(path))
+            except FileNotFoundError:
                 sys.stderr.write(
-                    'Warning: environment file "%s" was skipped.\n' % path
+                    'Warning: environment file "%s" not found.\n' % path
                 )
-                continue
-            env.update(dotenvfile.loadfile(path))
 
     # Determine how many processes of each type we need.
     effective_scale = {}
