@@ -35,8 +35,8 @@ def now(utc=False):
 
 
 version = pkg_resources.resource_string('strawboss', 'version.txt')
-"""Package version (as a dotted string)."""
 version = version.decode('utf-8').strip()
+"""Package version (as a dotted string)."""
 
 
 class ListOverride(argparse.Action):
@@ -85,6 +85,8 @@ def merge_envs(*args):
 def run_once(name, cmd, env, shutdown, loop=None, utc=False):
     """Starts a child process and waits for its completion.
 
+    .. note:: This function is a coroutine.
+
     Standard output and error streams are captured and forwarded to the parent
     process' standard output.  Each line is prefixed with the current time (as
     measured by the parent process) and the child process ``name``.
@@ -108,6 +110,10 @@ def run_once(name, cmd, env, shutdown, loop=None, utc=False):
        used.
     :param utc: When ``True``, the timestamps are logged using the current time
        in UTC.
+    :return: A future that will be completed when the process has completed.
+       Upon completion, the future's result will contain the process' exit
+       status.
+
     """
 
     # Get the default event loop if necessary.
@@ -184,12 +190,19 @@ def run_once(name, cmd, env, shutdown, loop=None, utc=False):
 
 @asyncio.coroutine
 def run_and_respawn(shutdown, loop=None, **kwds):
-    """Starts a child process and respawns it every time it completes.
+    """Starts a child process and re-spawns it every time it completes.
+
+    .. note:: This function is a coroutine.
 
     :param shutdown: Future that the caller will fulfill to indicate that the
-       process should not be respawned.  It is also passed to ``run_once()`` to
-       indicate that the currently running process should be killed early.
-    :param kwds: Arguments to pass to ``run_once()``.
+       process should not be re-spawned.  It is also passed to ``run_once()``
+       to indicate that the currently running process should be killed early.
+    :param loop: Event loop to use.  Defaults to the
+       ``asyncio.get_event_loop()``.
+    :param kwds: Arguments to forward to :py:func:`run_once`.
+    :return: A future that will be completed when the process has stopped
+       re-spawning and has completed.  The future has no result.
+
     """
 
     # Get the default event loop if necessary.
@@ -220,6 +233,8 @@ def main(arguments=None):
     :param arguments: List of strings that contain the command-line arguments.
        When ``None``, the command-line arguments are looked up in ``sys.argv``
        (``sys.argv[0]`` is ignored).
+    :return: This function has no return value.
+    :raise SystemExit: The command-line arguments are invalid.
     """
 
     # Parse command-line arguments.

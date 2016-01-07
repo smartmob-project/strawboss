@@ -1,11 +1,18 @@
 sudo: false
 
+# sphinxcontrib-spelling requires libenchant.
+addons:
+  apt:
+    packages:
+      - libenchant-dev
+
 language: python
 
 python:
   - "3.5"
 
 env:
+  - TOXENV=docs
   - TOXENV=py35
 
 install:
