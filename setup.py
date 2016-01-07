@@ -16,9 +16,10 @@ with open('strawboss/version.txt', 'r') as stream:
 setup(
     name='strawboss',
     url='https://github.com/smartmob-project/strawboss',
-    description='',
+    description='Procfile runner',
     long_description=readme,
-    keywords='',
+    keywords='procfile asyncio foreman honcho',
+    license='MIT',
     maintainer='Andre Caron',
     maintainer_email='ac@smartmob.org',
     version=version,
@@ -42,4 +43,9 @@ setup(
             'strawboss = strawboss:main',
          ],
     },
+    install_requires=[
+        'dotenvfile',
+        'procfile',
+        'python-dateutil',
+    ],
 )
