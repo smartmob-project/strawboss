@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import re
 import signal
 import pytest
 
@@ -37,7 +38,6 @@ def test_main_procfile_empty(load_procfile, load_dotenvfile,
 @mock.patch('dotenvfile.loadfile')
 @mock.patch('procfile.loadfile')
 def test_main(load_procfile, load_dotenvfile, subprocess_factory, capfd, event_loop):
-    loop = asyncio.get_event_loop()
     load_procfile.return_value = {
         'foo': {
             'cmd': 'false',
@@ -45,7 +45,7 @@ def test_main(load_procfile, load_dotenvfile, subprocess_factory, capfd, event_l
         },
     }
     # Automatically trigger CTRL-C a short while from now.
-    loop.call_later(1.0, os.kill, os.getpid(), signal.SIGINT)
+    event_loop.call_later(1.0, os.kill, os.getpid(), signal.SIGINT)
     # Run the main function!
     main(['--no-env'])
     stdout, stderr = capfd.readouterr()
@@ -63,5 +63,40 @@ def test_main(load_procfile, load_dotenvfile, subprocess_factory, capfd, event_l
             '[strawboss] foo.0(%d) killed.' % p.pid,
             '[strawboss] foo.0(%d) completed with exit status -9.' % p.pid,
         ])
+    assert len(subprocess_factory.instances) > 0
+    assert set(lines) == set(expected_lines)
+
+@mock.patch('sys.argv', ['strawboss', '--no-env', '--scale=*:2'])
+@mock.patch('dotenvfile.loadfile')
+@mock.patch('procfile.loadfile')
+def test_main_cli(load_procfile, load_dotenvfile,
+                  subprocess_factory, capfd, event_loop):
+    load_procfile.return_value = {
+        'foo': {
+            'cmd': 'false',
+            'env': {},
+        },
+    }
+    # Automatically trigger CTRL-C a short while from now.
+    event_loop.call_later(1.0, os.kill, os.getpid(), signal.SIGINT)
+    # Run the main function!
+    main()
+    stdout, stderr = capfd.readouterr()
+    # Error log should be empty.
+    assert stderr.strip() == ''
+    # Output log should contain start & stop info for each subprocess.
+    #
+    # NOTE: we strip timestamps and PIDs from the logs since they don't matter
+    #       here and it makes comparisons simpler.
+    lines = stdout.strip().split('\n')
+    lines = [re.sub(r'\(\d+\)', r'(?)', line.split(' ', 1)[1]) for line in lines]
+    expected_lines = []
+    for i in range(2):
+        expected_lines.extend([
+            '[strawboss] foo.%d(?) spawned.' % i,
+            '[strawboss] foo.%d(?) killed.' % i,
+            '[strawboss] foo.%d(?) completed with exit status -9.' % i,
+        ])
+    print(lines)
     assert len(subprocess_factory.instances) > 0
     assert set(lines) == set(expected_lines)
