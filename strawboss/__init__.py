@@ -138,7 +138,11 @@ def run_once(name, cmd, env, shutdown, loop=None, utc=False):
     # TODO: close stdin for new process.
     # TODO: terminate the process after the grace period.
     ready = asyncio.ensure_future(process.wait())
-    pending = {shutdown, ready, process.stdout.readline()}
+    pending = {
+        shutdown,
+        ready,
+        asyncio.ensure_future(process.stdout.readline()),
+    }
     while not ready.done():
         done, pending = yield from asyncio.wait(
             pending,
@@ -178,7 +182,7 @@ def run_once(name, cmd, env, shutdown, loop=None, utc=False):
             print('%s [%s] %s' % (
                 now(utc).isoformat(), name, data
             ))
-            pending.add(process.stdout.readline())
+            pending.add(asyncio.ensure_future(process.stdout.readline()))
     # Cancel any remaining tasks (e.g. readline).
     for future in pending:
         if future is shutdown:
