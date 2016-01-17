@@ -41,6 +41,10 @@ You can find the documentation on ReadTheDocs:
 
 .. _latest: http://strawboss.readthedocs.org/en/latest/
 
+See the `demo project`_ for a concrete working example.
+
+.. _`demo project`: https://github.com/smartmob-project/strawboss-demo
+
 Contributing
 ------------
 
