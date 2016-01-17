@@ -2,11 +2,11 @@ strawboss - local procfile runner
 =================================
 
 .. image:: https://img.shields.io/pypi/pyversions/strawboss.svg
-   :target: Supported Python versions
-   :alt: https://pypi.python.org/pypi/strawboss
+   :target: https://pypi.python.org/pypi/strawboss
+   :alt: Supported Python versions
 
-.. image:: https://pypip.in/v/strawboss/badge.png
-   :target: https://badge.fury.io/py/strawboss.svg
+.. image:: https://badge.fury.io/py/strawboss.svg
+   :target: https://pypi.python.org/pypi/strawboss
    :alt: Latest PyPI version
 
 .. image:: https://readthedocs.org/projects/strawboss/badge/?version=latest
